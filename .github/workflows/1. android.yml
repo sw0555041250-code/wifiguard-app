@@ -20,24 +20,22 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Find and Grant execute permission for gradlew
+    - name: Find and Build APK
       run: |
+        # 1. מציאת התיקייה בה נמצא קובץ ה-gradlew
         GRADLEW_PATH=$(find . -name gradlew -print -quit)
-        echo "Found gradlew at: $GRADLEW_PATH"
+        GRADLEW_DIR=$(dirname "$GRADLEW_PATH")
+        echo "Found gradlew in directory: $GRADLEW_DIR"
+        
+        # 2. מתן הרשאות ביצוע לקובץ
         chmod +x "$GRADLEW_PATH"
-        echo "GRADLEW_DIR=$(dirname "$GRADLEW_PATH")" >> $GITHUB_ENV
-
-    - name: Build with Gradle
-      run: ./gradlew assembleDebug
-      working-directory: ${{ env.GRADLEW_DIR }}
-
-    - name: Find APK Path
-      run: |
-        APK_PATH=$(find . -name "app-debug.apk" -print -quit)
-        echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
+        
+        # 3. כניסה לתיקייה והרצת הבנייה של ה-APK
+        cd "$GRADLEW_DIR"
+        ./gradlew assembleDebug
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: wifiguard-debug-apk
-        path: ${{ env.APK_PATH }}
+        path: "**/build/outputs/apk/debug/app-debug.apk"
